@@ -5,7 +5,7 @@
 
 
 
-const amqplib = require('amqplib/callback_api');
+const amqplib = require('amqplib');
 const {EXCHANGE_NAME,MESSAGE_BROKER_URL} = require('../config/serverConfig')
 
 const createChannel =  async () => {
@@ -24,14 +24,15 @@ const subscribeMessage = async (channel, service, binding_key) => {
     try {
         const applicationQueue = await channel.assertQueue('QUEUE_NAME');
         await channel.bindQueue(applicationQueue.queue , EXCHANGE_NAME ,binding_key);
-
         channel.consume(applicationQueue.queue , (msg) =>{
             console.log('received data');
             console.log(msg.content.toString());
+            const payload = JSON.parse(msg.content.toString());
+            service(payload)
             channel.ack(msg);
-        })
+        })  
     } catch (error) {
-        throw error; 
+        throw error;
     }
 }
 
